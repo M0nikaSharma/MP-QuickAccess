@@ -1,0 +1,331 @@
+swagger: "2.0"
+info:
+  description: This API will have resources to perform CRUD operations on mongo dB for recentSearch use case.
+  version: 1.0.0
+  title: MP-QuickAccess
+host: localhost
+basePath: /quick-access
+tags:
+ -
+  name: MP-QuickAccess
+  description: Customer Management REST Services
+schemes:
+ - https
+ - http
+security:
+ -
+  default: []
+paths:
+  /quickaccess:
+    get:
+      tags:
+       - MP-QuickAccess
+      summary: This resources to find all quick access stored in the MongoDB.
+      produces:
+       - application/json
+      parameters:
+       -
+        name: userName
+        in: query
+        description: username for which recent searches details to be fetched.
+        required: true
+        type: string
+       -
+        name: sortorder
+        in: query
+        description: The order in which the query returns matching documents [1 for asc,  -1 for desc]
+        required: true
+        type: integer
+        enum:
+         - 1
+         - -1
+       -
+        name: limit
+        in: query
+        description: The number of maximum documents returned for the query.
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Success Response
+          schema:
+            $ref: '#/definitions/GetQuickAccessResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/400ErrorStructure'
+        "401":
+          description: Invalid authentication information provided
+          schema:
+            $ref: '#/definitions/commonErrorStructure'
+        "403":
+          description: Invoking the API which has not been granted access to the required resource.
+          schema:
+            $ref: '#/definitions/commonErrorStructure'
+        "404":
+          description: The requested resource is not available
+          schema:
+            $ref: '#/definitions/404_500ErrorStructure'
+        "429":
+          description: Message throttled out due to subscription level throttling limit reached.
+          schema:
+            $ref: '#/definitions/429ErrorStructure'
+        "500":
+          description: Runtime Error.
+          schema:
+            $ref: '#/definitions/404_500ErrorStructure'
+      security:
+       -
+        default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+         - oauth2
+        optional: false
+    post:
+      tags:
+       - MP-QuickAccess
+      summary: This resources to insert all recent searches stored in the MongoDB.
+      consumes:
+       - application/json
+      produces:
+       - application/json
+      parameters:
+       -
+        in: body
+        name: Insert quick access search
+        description: Insert quick access  search
+        required: false
+        schema:
+          $ref: '#/definitions/InsertQuickAccessRequest'
+      responses:
+        "200":
+          description: Success Response
+          schema:
+            $ref: '#/definitions/InsertQuickAccessResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/400ErrorStructure'
+        "401":
+          description: Invalid authentication information provided
+          schema:
+            $ref: '#/definitions/commonErrorStructure'
+        "403":
+          description: Invoking the API which has not been granted access to the required resource.
+          schema:
+            $ref: '#/definitions/commonErrorStructure'
+        "404":
+          description: The requested resource is not available
+          schema:
+            $ref: '#/definitions/404_500ErrorStructure'
+        "429":
+          description: Message throttled out due to subscription level throttling limit reached.
+          schema:
+            $ref: '#/definitions/429ErrorStructure'
+        "500":
+          description: Runtime Error.
+          schema:
+            $ref: '#/definitions/404_500ErrorStructure'
+      security:
+       -
+        default: []
+      x-auth-type: Application & Application User
+      x-throttling-tier: Unlimited
+      x-wso2-application-security:
+        security-types:
+         - oauth2
+        optional: false
+securityDefinitions:
+  default:
+    type: oauth2
+    authorizationUrl: https://test.com
+    flow: implicit
+definitions:
+  GetQuickAccessResponse:
+    type: array
+    items:
+      type: object
+      properties:
+        userName:
+          type: string
+          example: testing@com
+        address:
+          type: object
+          properties:
+            coord:
+              type: array
+              items:
+                type: number
+                example: ""
+        stopid:
+          type: integer
+          example: 123456
+        stoptype:
+          type: string
+          example: bus
+        placeName:
+          type: string
+          example: riydha
+        isFavorite:
+          type: boolean
+          example: false
+        timeStamp:
+          type: string
+          example: 2021-05-06T06:55:27.537Z
+  InsertQuickAccessRequest:
+    type: object
+    properties:
+      collection:
+        type: string
+        enum:
+         - recentsearches
+      documents:
+        type: array
+        items:
+          type: object
+          properties:
+            userName:
+              type: string
+            address:
+              type: object
+              properties:
+                coord:
+                  type: array
+                  items:
+                    type: number
+                    example: ""
+            stopid:
+              type: integer
+            stoptype:
+              type: string
+            placeName:
+              type: string
+            isFavorite:
+              type: boolean
+            timeStamp:
+              type: string
+  InsertQuickAccessResponse:
+    type: object
+    properties:
+      InsertQuickAccessResult:
+        type: string
+        example: Successful
+  DeleteQuickAccessResponse:
+    type: object
+    properties:
+      DeleteQuickAccessResult:
+        type: string
+        example: Successful
+      deletedCount:
+        type: integer
+  commonErrorStructure:
+    type: object
+    required:
+     - fault
+    properties:
+      fault:
+        type: object
+        properties:
+          code:
+            type: integer
+          message:
+            type: string
+          description:
+            type: string
+        required:
+         - code
+         - description
+         - message
+  "400ErrorStructure":
+    type: object
+    properties:
+      error:
+        type: boolean
+        example: true
+      message:
+        type: string
+        example: Bad Request
+  "404_500ErrorStructure":
+    type: object
+    required:
+     - fault
+    properties:
+      fault:
+        type: object
+        properties:
+          code:
+            type: integer
+            example: 404
+          type:
+            type: string
+            example: Status report
+          message:
+            type: string
+            example: Runtime Error
+          description:
+            type: string
+            example: No matching resource found for given API Request
+        required:
+         - code
+         - description
+         - message
+  "429ErrorStructure":
+    type: object
+    required:
+     - fault
+    properties:
+      fault:
+        type: object
+        properties:
+          code:
+            type: integer
+          type:
+            type: string
+          message:
+            type: string
+          nextAccessTime:
+            type: string
+        required:
+         - code
+         - message
+x-wso2-auth-header: Authorization
+x-wso2-cors:
+  corsConfigurationEnabled: false
+  accessControlAllowOrigins:
+   - '*'
+  accessControlAllowCredentials: false
+  accessControlAllowHeaders:
+   - authorization
+   - Access-Control-Allow-Origin
+   - Content-Type
+   - SOAPAction
+   - apikey
+   - testKey
+  accessControlAllowMethods:
+   - GET
+   - PUT
+   - POST
+   - DELETE
+   - PATCH
+   - OPTIONS
+x-wso2-production-endpoints:
+  urls:
+   - ' http://localhost:8290/quick-access'
+  type: http
+x-wso2-sandbox-endpoints:
+  urls:
+   - ' http://localhost:8290/quick-access'
+  type: http
+x-wso2-basePath: /quick-access/1.0.0
+x-wso2-transports:
+ - http
+ - https
+x-wso2-application-security:
+  security-types:
+   - oauth2
+  optional: false
+x-wso2-response-cache:
+  enabled: false
+  cacheTimeoutInSeconds: 300

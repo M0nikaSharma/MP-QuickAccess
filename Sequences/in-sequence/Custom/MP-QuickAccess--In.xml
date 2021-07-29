@@ -1,0 +1,61 @@
+<sequence xmlns="http://ws.apache.org/ns/synapse" name="MP-QuickAccess--In">
+   <log level="custom">
+      <property name="!!!! MP-QuickAccess--In !!!!!!!!" value="!!!! MP-QuickAccess--In !!!!!!!!"/>
+      <property name="url" expression="substring-before(concat($axis2:REST_URL_POSTFIX, '?'), '?')"/>
+      <property name="httpMethod" expression="$axis2:HTTP_METHOD"/>
+   </log>
+   <property name="url" expression="substring-before(concat($axis2:REST_URL_POSTFIX, '?'), '?')" scope="default"/>
+   <property name="httpMethod" expression="$axis2:HTTP_METHOD"/>
+   <switch source="get-property('httpMethod')">
+      <case regex="POST">
+         <log level="custom">
+            <property name="!!!! MP-QuickAccess--In !!!!!!!!" value="!!!! MP-QuickAccess--In POST !!!!!!!!"/>
+         </log>
+         <property name="REST_URL_POSTFIX" scope="axis2" action="remove"/>
+         <property name="REST_URL_POSTFIX" expression="fn:concat('/', 'insertquickaccess')" scope="axis2" type="STRING"/>
+      </case>
+      <case regex="GET">
+         <log level="custom">
+            <property name="!!!! MP-QuickAccess--In !!!!!!!!" value="!!!! MP-QuickAccess--In GET !!!!!!!!"/>
+         </log>
+         <property name="username" expression="$url:username"/>
+         <property name="sortorder" expression="$url:sortorder"/>
+         <property name="limit" expression="$url:limit"/>
+         <payloadFactory media-type="json">
+            <format>{
+				 "collection": "quickaccess",
+				 "query": {
+					 "userName": "$1"
+				 },
+				  "sort": {         
+					"timeStamp": $2     
+				}, 
+				 "limit": $3
+			}</format>
+            <args>
+               <arg evaluator="xml" expression="$ctx:username"/>
+               <arg evaluator="xml" expression="$ctx:sortorder"/>
+               <arg evaluator="xml" expression="$ctx:limit"/>
+            </args>
+         </payloadFactory>
+         <property name="messageType" scope="axis2" type="STRING" value="application/json"/>
+         <property name="REST_URL_POSTFIX" scope="axis2" action="remove"/>
+         <property name="REST_URL_POSTFIX" expression="fn:concat('/', 'getquickaccess')" scope="axis2" type="STRING"/>
+         <property name="HTTP_METHOD" value="POST" scope="axis2" type="STRING"/>
+      </case>
+      <default>
+         <payloadFactory description="not found" media-type="json">
+            <format>{
+								"fault": {
+									"code": 404,
+									"message": "Not Found",
+									"description": "The requested resource is not available."
+							}
+						}</format>
+            <args/>
+         </payloadFactory>
+         <property name="HTTP_SC" scope="axis2" type="STRING" value="404"/>
+         <respond/>
+      </default>
+   </switch>
+</sequence>
